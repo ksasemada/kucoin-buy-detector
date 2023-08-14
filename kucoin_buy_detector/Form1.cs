@@ -41,7 +41,7 @@ namespace kucoin_buy_detector
         string[] orden_last = new string[100];
 
         string[,] takerOrderId = new string[500000, 10];
-        Int64 takerOrderId_kol = 0;
+        Int64[] takerOrderId_kol = new Int64[10];
 
         public Form1()
         {
@@ -51,6 +51,11 @@ namespace kucoin_buy_detector
         private async void Form1_Load(object sender, EventArgs e)
         {
             log_richTextBox.Invoke(new Action(() => log_richTextBox.AppendText(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " Start." + Environment.NewLine, Color.Black)));
+
+            for(int a = 0; a < 9; a++)
+            {
+                takerOrderId_kol[a] = 0;
+            }
 
             await load_kucoin_symbols();
         }
@@ -268,7 +273,7 @@ namespace kucoin_buy_detector
                 Int64 order = 0;
                 if (message_market_match.data.side == "buy")
                 {
-                    for (Int64 a = 0; a < takerOrderId_kol; a++)
+                    for (Int64 a = 0; a < takerOrderId_kol[num]; a++)
                     {
                         if (takerOrderId[a, 0] == message_market_match.data.takerOrderId.ToString())
                         {
@@ -279,17 +284,17 @@ namespace kucoin_buy_detector
                             goto exit;
                         }
                     }
-                    takerOrderId[takerOrderId_kol, 0] = message_market_match.data.takerOrderId.ToString();
-                    takerOrderId[takerOrderId_kol, 1] = "1";
-                    takerOrderId[takerOrderId_kol, 2] = (Convert.ToDouble(message_market_match.data.price.Replace(".", ",")) * Convert.ToDouble(message_market_match.data.size.Replace(".", ","))).ToString();
-                    takerOrderId[takerOrderId_kol, 3] = "-";
-                    takerOrderId[takerOrderId_kol, 4] = message_market_match.data.symbol.ToString();
-                    takerOrderId[takerOrderId_kol, 5] = message_market_match.data.price.ToString();
-                    takerOrderId[takerOrderId_kol, 6] = message_market_match.data.price.ToString();
-                    order = takerOrderId_kol;
-                    takerOrderId_kol++;
+                    takerOrderId[takerOrderId_kol[num], 0] = message_market_match.data.takerOrderId.ToString();
+                    takerOrderId[takerOrderId_kol[num], 1] = "1";
+                    takerOrderId[takerOrderId_kol[num], 2] = (Convert.ToDouble(message_market_match.data.price.Replace(".", ",")) * Convert.ToDouble(message_market_match.data.size.Replace(".", ","))).ToString();
+                    takerOrderId[takerOrderId_kol[num], 3] = "-";
+                    takerOrderId[takerOrderId_kol[num], 4] = message_market_match.data.symbol.ToString();
+                    takerOrderId[takerOrderId_kol[num], 5] = message_market_match.data.price.ToString();
+                    takerOrderId[takerOrderId_kol[num], 6] = message_market_match.data.price.ToString();
+                    order = takerOrderId_kol[num];
+                    takerOrderId_kol[num]++;
                 exit:
-                    kol_pos_label.Invoke(new Action(() => kol_pos_label.Text = "Parcels: " + takerOrderId_kol));
+                    kol_pos_label.Invoke(new Action(() => kol_pos_label.Text = "Parcels: (" + num + ") " + takerOrderId_kol[num]));
                 }
 
                 double min_ = 300; // filter
@@ -304,7 +309,7 @@ namespace kucoin_buy_detector
                         string proc_f_n = "0";
                         string proc_s_n = "0";
 
-                    for (Int64 a = 0; a < takerOrderId_kol; a++)
+                    for (Int64 a = 0; a < takerOrderId_kol[num]; a++)
                     {
                         if (takerOrderId[a, 0] == orden_last[num])
                         {
